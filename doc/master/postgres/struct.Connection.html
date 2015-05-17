@@ -45,7 +45,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-30541' class='srclink' href='../src/postgres/lib.rs.html#933-935' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-30701' class='srclink' href='../src/postgres/lib.rs.html#945-947' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct Connection {
     // some fields omitted
 }</pre><div class='docblock'><p>A connection to a Postgres database.</p>
@@ -165,11 +165,6 @@ is active until the <code>Transaction</code> object falls out of scope.</p>
 <h2 id="note" class='section-header'><a
                            href="#note">Note</a></h2>
 <p>This will not change the behavior of an active transaction.</p>
-</div><h4 id='method.get_transaction_isolation' class='method'><code>fn <a href='#method.get_transaction_isolation' class='fnname'>get_transaction_isolation</a>(&amp;self) -&gt; <a class='type' href='../postgres/type.Result.html' title='postgres::Result'>Result</a>&lt;<a class='enum' href='../postgres/enum.IsolationLevel.html' title='postgres::IsolationLevel'>IsolationLevel</a>&gt;</code></h4>
-<div class='docblock'>
-<h1 id="deprecated" class='section-header'><a
-                           href="#deprecated">Deprecated</a></h1>
-<p>Use <code>transaction_isolation</code> instead.</p>
 </div><h4 id='method.transaction_isolation' class='method'><code>fn <a href='#method.transaction_isolation' class='fnname'>transaction_isolation</a>(&amp;self) -&gt; <a class='type' href='../postgres/type.Result.html' title='postgres::Result'>Result</a>&lt;<a class='enum' href='../postgres/enum.IsolationLevel.html' title='postgres::IsolationLevel'>IsolationLevel</a>&gt;</code></h4>
 <div class='docblock'><p>Returns the isolation level which will be used for future transactions.</p>
 </div><h4 id='method.execute' class='method'><code>fn <a href='#method.execute' class='fnname'>execute</a>(&amp;self, query: &amp;<a href='http://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>, params: <a href='http://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a>&amp;<a class='trait' href='../postgres/trait.ToSql.html' title='postgres::ToSql'>ToSql</a><a href='http://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>) -&gt; <a class='type' href='../postgres/type.Result.html' title='postgres::Result'>Result</a>&lt;<a href='http://doc.rust-lang.org/nightly/std/primitive.u64.html'>u64</a>&gt;</code></h4>

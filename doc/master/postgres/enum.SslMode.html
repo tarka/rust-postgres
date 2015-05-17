@@ -45,18 +45,17 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-31059' class='srclink' href='../src/postgres/lib.rs.html#1256-1263' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-26974' class='srclink' href='../src/postgres/lib.rs.html#461-468' title='goto source code'>[src]</a></span></h1>
 <pre class='rust enum'>pub enum SslMode {
     None,
-    Prefer(<a class='struct' href='https://sfackler.github.io/rust-openssl/doc/openssl/openssl/ssl/struct.SslContext.html' title='openssl::ssl::SslContext'>SslContext</a>),
-    Require(<a class='struct' href='https://sfackler.github.io/rust-openssl/doc/openssl/openssl/ssl/struct.SslContext.html' title='openssl::ssl::SslContext'>SslContext</a>),
+    Prefer(<a class='struct' href='http://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html' title='alloc::boxed::Box'>Box</a>&lt;<a class='trait' href='../postgres/io/trait.NegotiateSsl.html' title='postgres::io::NegotiateSsl'>NegotiateSsl</a>&gt;),
+    Require(<a class='struct' href='http://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html' title='alloc::boxed::Box'>Box</a>&lt;<a class='trait' href='../postgres/io/trait.NegotiateSsl.html' title='postgres::io::NegotiateSsl'>NegotiateSsl</a>&gt;),
 }</pre><div class='docblock'><p>Specifies the SSL support requested for a new connection.</p>
 </div><h2 class='variants'>Variants</h2>
 <table><tr><td id='variant.None'><code>None</code></td><td><div class='docblock'><p>The connection will not use SSL.</p>
 </div></td></tr><tr><td id='variant.Prefer'><code>Prefer</code></td><td><div class='docblock'><p>The connection will use SSL if the backend supports it.</p>
 </div></td></tr><tr><td id='variant.Require'><code>Require</code></td><td><div class='docblock'><p>The connection must use SSL.</p>
-</div></td></tr></table><h2 id='implementations'>Trait Implementations</h2><h3 id='derived_implementations'>Derived Implementations </h3><h3 class='impl'><code>impl <a class='trait' href='http://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='enum' href='../postgres/enum.SslMode.html' title='postgres::SslMode'>SslMode</a></code></h3><div class='impl-items'><h4 id='method.fmt' class='method'><code>fn <a href='http://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#method.fmt' class='fnname'>fmt</a>(&amp;self, __arg_0: &amp;mut <a class='struct' href='http://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='http://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></h4>
-</div></section>
+</div></td></tr></table></section>
     <section id='search' class="content hidden"></section>
 
     <section class="footer"></section>
