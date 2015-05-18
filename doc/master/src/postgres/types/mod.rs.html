@@ -837,6 +837,92 @@
 <span id="795">795</span>
 <span id="796">796</span>
 <span id="797">797</span>
+<span id="798">798</span>
+<span id="799">799</span>
+<span id="800">800</span>
+<span id="801">801</span>
+<span id="802">802</span>
+<span id="803">803</span>
+<span id="804">804</span>
+<span id="805">805</span>
+<span id="806">806</span>
+<span id="807">807</span>
+<span id="808">808</span>
+<span id="809">809</span>
+<span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
+<span id="813">813</span>
+<span id="814">814</span>
+<span id="815">815</span>
+<span id="816">816</span>
+<span id="817">817</span>
+<span id="818">818</span>
+<span id="819">819</span>
+<span id="820">820</span>
+<span id="821">821</span>
+<span id="822">822</span>
+<span id="823">823</span>
+<span id="824">824</span>
+<span id="825">825</span>
+<span id="826">826</span>
+<span id="827">827</span>
+<span id="828">828</span>
+<span id="829">829</span>
+<span id="830">830</span>
+<span id="831">831</span>
+<span id="832">832</span>
+<span id="833">833</span>
+<span id="834">834</span>
+<span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
+<span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
+<span id="845">845</span>
+<span id="846">846</span>
+<span id="847">847</span>
+<span id="848">848</span>
+<span id="849">849</span>
+<span id="850">850</span>
+<span id="851">851</span>
+<span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
+<span id="857">857</span>
+<span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
+<span id="861">861</span>
+<span id="862">862</span>
+<span id="863">863</span>
+<span id="864">864</span>
+<span id="865">865</span>
+<span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
+<span id="872">872</span>
+<span id="873">873</span>
+<span id="874">874</span>
+<span id="875">875</span>
+<span id="876">876</span>
+<span id="877">877</span>
+<span id="878">878</span>
+<span id="879">879</span>
+<span id="880">880</span>
+<span id="881">881</span>
+<span id="882">882</span>
+<span id="883">883</span>
 </pre><pre class='rust '>
 <span class='doccomment'>//! Traits dealing with Postgres data types</span>
 <span class='kw'>pub</span> <span class='kw'>use</span> <span class='self'>self</span>::<span class='ident'>slice</span>::<span class='ident'>Slice</span>;
@@ -1300,6 +1386,48 @@
 }
 
 <span class='doccomment'>/// A trait for types that can be created from a Postgres value.</span>
+<span class='doccomment'>///</span>
+<span class='doccomment'>/// # Types</span>
+<span class='doccomment'>///</span>
+<span class='doccomment'>/// The following implementations are provided by this crate, along with the</span>
+<span class='doccomment'>/// corresponding Postgres types:</span>
+<span class='doccomment'>///</span>
+<span class='doccomment'>/// | Rust type                                   | Postgres type(s)               |</span>
+<span class='doccomment'>/// |---------------------------------------------|--------------------------------|</span>
+<span class='doccomment'>/// | bool                                        | BOOL                           |</span>
+<span class='doccomment'>/// | i8                                          | &quot;char&quot;                         |</span>
+<span class='doccomment'>/// | i16                                         | SMALLINT, SMALLSERIAL          |</span>
+<span class='doccomment'>/// | i32                                         | INT, SERIAL                    |</span>
+<span class='doccomment'>/// | u32                                         | OID                            |</span>
+<span class='doccomment'>/// | i64                                         | BIGINT, BIGSERIAL              |</span>
+<span class='doccomment'>/// | f32                                         | REAL                           |</span>
+<span class='doccomment'>/// | f64                                         | DOUBLE PRECISION               |</span>
+<span class='doccomment'>/// | String                                      | VARCHAR, CHAR(n), TEXT, CITEXT |</span>
+<span class='doccomment'>/// | Vec&amp;lt;u8&amp;gt;                               | BYTEA                          |</span>
+<span class='doccomment'>/// | HashMap&amp;lt;String, Option&amp;lt;String&amp;gt;&amp;gt; | HSTORE                         |</span>
+<span class='doccomment'>///</span>
+<span class='doccomment'>/// In addition, some implementations are provided for types in third party</span>
+<span class='doccomment'>/// crates. These are disabled by default; to opt into one of these</span>
+<span class='doccomment'>/// implementations, activate the cargo feature corresponding to the crate&#39;s</span>
+<span class='doccomment'>/// name. For example, the `serde` feature enables the implementation for the</span>
+<span class='doccomment'>/// `serde::json::Value` type.</span>
+<span class='doccomment'>///</span>
+<span class='doccomment'>/// | Rust type                   | Postgres type(s)                    |</span>
+<span class='doccomment'>/// |-----------------------------|-------------------------------------|</span>
+<span class='doccomment'>/// | serialize::json::Json       | JSON, JSONB                         |</span>
+<span class='doccomment'>/// | serde::json::Value          | JSON, JSONB                         |</span>
+<span class='doccomment'>/// | time::Timespec              | TIMESTAMP, TIMESTAMP WITH TIME ZONE |</span>
+<span class='doccomment'>/// | chrono::NaiveDateTime       | TIMESTAMP                           |</span>
+<span class='doccomment'>/// | chrono::DateTime&amp;lt;UTC&amp;gt; | TIMESTAMP WITH TIME ZONE            |</span>
+<span class='doccomment'>/// | chrono::NaiveDate           | DATE                                |</span>
+<span class='doccomment'>/// | chrono::NaiveTime           | TIME                                |</span>
+<span class='doccomment'>/// | uuid::Uuid                  | UUID                                |</span>
+<span class='doccomment'>///</span>
+<span class='doccomment'>/// # Nullability</span>
+<span class='doccomment'>///</span>
+<span class='doccomment'>/// In addition to the types listed above, `FromSql` is implemented for</span>
+<span class='doccomment'>/// `Option&lt;T&gt;` where `T` implements `FromSql`. An `Option&lt;T&gt;` represents a</span>
+<span class='doccomment'>/// nullable Postgres value.</span>
 <span class='kw'>pub</span> <span class='kw'>trait</span> <span class='ident'>FromSql</span>: <span class='ident'>Sized</span> {
     <span class='doccomment'>/// Creates a new value of this type from a `Read` of Postgres data.</span>
     <span class='doccomment'>///</span>
@@ -1459,6 +1587,50 @@
 }
 
 <span class='doccomment'>/// A trait for types that can be converted into Postgres values.</span>
+<span class='doccomment'>///</span>
+<span class='doccomment'>/// # Types</span>
+<span class='doccomment'>///</span>
+<span class='doccomment'>/// The following implementations are provided by this crate, along with the</span>
+<span class='doccomment'>/// corresponding Postgres types:</span>
+<span class='doccomment'>///</span>
+<span class='doccomment'>/// | Rust type                                   | Postgres type(s)               |</span>
+<span class='doccomment'>/// |---------------------------------------------|--------------------------------|</span>
+<span class='doccomment'>/// | bool                                        | BOOL                           |</span>
+<span class='doccomment'>/// | i8                                          | &quot;char&quot;                         |</span>
+<span class='doccomment'>/// | i16                                         | SMALLINT, SMALLSERIAL          |</span>
+<span class='doccomment'>/// | i32                                         | INT, SERIAL                    |</span>
+<span class='doccomment'>/// | u32                                         | OID                            |</span>
+<span class='doccomment'>/// | i64                                         | BIGINT, BIGSERIAL              |</span>
+<span class='doccomment'>/// | f32                                         | REAL                           |</span>
+<span class='doccomment'>/// | f64                                         | DOUBLE PRECISION               |</span>
+<span class='doccomment'>/// | String                                      | VARCHAR, CHAR(n), TEXT, CITEXT |</span>
+<span class='doccomment'>/// | &amp;str                                        | VARCHAR, CHAR(n), TEXT, CITEXT |</span>
+<span class='doccomment'>/// | Vec&amp;lt;u8&amp;gt;                               | BYTEA                          |</span>
+<span class='doccomment'>/// | &amp;[u8]                                       | BYTEA                          |</span>
+<span class='doccomment'>/// | HashMap&amp;lt;String, Option&amp;lt;String&amp;gt;&amp;gt; | HSTORE                         |</span>
+<span class='doccomment'>///</span>
+<span class='doccomment'>/// In addition, some implementations are provided for types in third party</span>
+<span class='doccomment'>/// crates. These are disabled by default; to opt into one of these</span>
+<span class='doccomment'>/// implementations, activate the cargo feature corresponding to the crate&#39;s</span>
+<span class='doccomment'>/// name. For example, the `serde` feature enables the implementation for the</span>
+<span class='doccomment'>/// `serde::json::Value` type.</span>
+<span class='doccomment'>///</span>
+<span class='doccomment'>/// | Rust type                   | Postgres type(s)                    |</span>
+<span class='doccomment'>/// |-----------------------------|-------------------------------------|</span>
+<span class='doccomment'>/// | serialize::json::Json       | JSON, JSONB                         |</span>
+<span class='doccomment'>/// | serde::json::Value          | JSON, JSONB                         |</span>
+<span class='doccomment'>/// | time::Timespec              | TIMESTAMP, TIMESTAMP WITH TIME ZONE |</span>
+<span class='doccomment'>/// | chrono::NaiveDateTime       | TIMESTAMP                           |</span>
+<span class='doccomment'>/// | chrono::DateTime&amp;lt;UTC&amp;gt; | TIMESTAMP WITH TIME ZONE            |</span>
+<span class='doccomment'>/// | chrono::NaiveDate           | DATE                                |</span>
+<span class='doccomment'>/// | chrono::NaiveTime           | TIME                                |</span>
+<span class='doccomment'>/// | uuid::Uuid                  | UUID                                |</span>
+<span class='doccomment'>///</span>
+<span class='doccomment'>/// # Nullability</span>
+<span class='doccomment'>///</span>
+<span class='doccomment'>/// In addition to the types listed above, `ToSql` is implemented for</span>
+<span class='doccomment'>/// `Option&lt;T&gt;` where `T` implements `ToSql`. An `Option&lt;T&gt;` represents a</span>
+<span class='doccomment'>/// nullable Postgres value.</span>
 <span class='kw'>pub</span> <span class='kw'>trait</span> <span class='ident'>ToSql</span>: <span class='ident'>fmt</span>::<span class='ident'>Debug</span> {
     <span class='doccomment'>/// Converts the value of `self` into the binary format of the specified</span>
     <span class='doccomment'>/// Postgres `Type`, writing it to `out`.</span>
@@ -1668,10 +1840,6 @@
                 <code>struct</code>, <code>enum</code>,
                 <code>trait</code>, <code>typedef</code> (or
                 <code>tdef</code>).
-            </p>
-            <p>
-                Search functions by type signature (e.g.
-                <code>vec -> usize</code>)
             </p>
         </div>
     </div>
