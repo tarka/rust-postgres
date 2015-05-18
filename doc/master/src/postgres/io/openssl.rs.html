@@ -4,10 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `src/io/mod.rs`.">
+    <meta name="description" content="Source to the Rust file `src/io/openssl.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
-    <title>mod.rs.html -- source</title>
+    <title>openssl.rs.html -- source</title>
 
     <link rel="stylesheet" type="text/css" href="../../../main.css">
 
@@ -63,43 +63,29 @@
 <span id="21">21</span>
 <span id="22">22</span>
 <span id="23">23</span>
-<span id="24">24</span>
-<span id="25">25</span>
-<span id="26">26</span>
-<span id="27">27</span>
-<span id="28">28</span>
-<span id="29">29</span>
-<span id="30">30</span>
 </pre><pre class='rust '>
-<span class='doccomment'>//! Types and traits for SSL adaptors.</span>
-<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>priv_io</span>::<span class='ident'>Stream</span>;
+<span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>openssl</span>;
 
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>error</span>::<span class='ident'>Error</span>;
-<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='ident'>prelude</span>::<span class='op'>*</span>;
 
-<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>feature</span> <span class='op'>=</span> <span class='string'>&quot;openssl&quot;</span>)]</span>
-<span class='kw'>mod</span> <span class='ident'>openssl</span>;
+<span class='kw'>use</span> <span class='self'>self</span>::<span class='ident'>openssl</span>::<span class='ident'>ssl</span>::{<span class='ident'>SslContext</span>, <span class='ident'>SslStream</span>};
+<span class='kw'>use</span> <span class='ident'>io</span>::{<span class='ident'>StreamWrapper</span>, <span class='ident'>Stream</span>, <span class='ident'>NegotiateSsl</span>};
 
-<span class='doccomment'>/// A trait implemented by SSL adaptors.</span>
-<span class='kw'>pub</span> <span class='kw'>trait</span> <span class='ident'>StreamWrapper</span>: <span class='ident'>Read</span><span class='op'>+</span><span class='ident'>Write</span><span class='op'>+</span><span class='ident'>Send</span> {
-    <span class='doccomment'>/// Returns a reference to the underlying `Stream`.</span>
-    <span class='kw'>fn</span> <span class='ident'>get_ref</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='ident'>Stream</span>;
+<span class='kw'>impl</span> <span class='ident'>StreamWrapper</span> <span class='kw'>for</span> <span class='ident'>SslStream</span><span class='op'>&lt;</span><span class='ident'>Stream</span><span class='op'>&gt;</span> {
+    <span class='kw'>fn</span> <span class='ident'>get_ref</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='ident'>Stream</span> {
+        <span class='self'>self</span>.<span class='ident'>get_ref</span>()
+    }
 
-    <span class='doccomment'>/// Returns a mutable reference to the underlying `Stream`.</span>
-    <span class='kw'>fn</span> <span class='ident'>get_mut</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Stream</span>;
+    <span class='kw'>fn</span> <span class='ident'>get_mut</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Stream</span> {
+        <span class='self'>self</span>.<span class='ident'>get_mut</span>()
+    }
 }
 
-<span class='doccomment'>/// A trait implemented by types that can negotiate SSL over a Postgres stream.</span>
-<span class='doccomment'>///</span>
-<span class='doccomment'>/// If the `openssl` Cargo feature is enabled, this trait will be implemented</span>
-<span class='doccomment'>/// for `openssl::ssl::SslContext`.</span>
-<span class='kw'>pub</span> <span class='kw'>trait</span> <span class='ident'>NegotiateSsl</span> {
-    <span class='doccomment'>/// Negotiates an SSL session, returning a wrapper around the provided</span>
-    <span class='doccomment'>/// stream.</span>
-    <span class='doccomment'>///</span>
-    <span class='doccomment'>/// The host portion of the connection parameters is provided for hostname</span>
-    <span class='doccomment'>/// verification.</span>
-    <span class='kw'>fn</span> <span class='ident'>negotiate_ssl</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>host</span>: <span class='kw-2'>&amp;</span><span class='ident'>str</span>, <span class='ident'>stream</span>: <span class='ident'>Stream</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>Box</span><span class='op'>&lt;</span><span class='ident'>StreamWrapper</span><span class='op'>&gt;</span>, <span class='ident'>Box</span><span class='op'>&lt;</span><span class='ident'>Error</span><span class='op'>&gt;&gt;</span>;
+<span class='kw'>impl</span> <span class='ident'>NegotiateSsl</span> <span class='kw'>for</span> <span class='ident'>SslContext</span> {
+    <span class='kw'>fn</span> <span class='ident'>negotiate_ssl</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, _: <span class='kw-2'>&amp;</span><span class='ident'>str</span>, <span class='ident'>stream</span>: <span class='ident'>Stream</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>Box</span><span class='op'>&lt;</span><span class='ident'>StreamWrapper</span><span class='op'>&gt;</span>, <span class='ident'>Box</span><span class='op'>&lt;</span><span class='ident'>Error</span><span class='op'>&gt;&gt;</span> {
+        <span class='kw'>let</span> <span class='ident'>stream</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>SslStream</span>::<span class='ident'>new</span>(<span class='self'>self</span>, <span class='ident'>stream</span>));
+        <span class='prelude-val'>Ok</span>(<span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='ident'>stream</span>))
+    }
 }
 </pre>
 </section>
