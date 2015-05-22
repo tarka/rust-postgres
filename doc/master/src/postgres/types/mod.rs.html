@@ -922,6 +922,43 @@
 <span id="880">880</span>
 <span id="881">881</span>
 <span id="882">882</span>
+<span id="883">883</span>
+<span id="884">884</span>
+<span id="885">885</span>
+<span id="886">886</span>
+<span id="887">887</span>
+<span id="888">888</span>
+<span id="889">889</span>
+<span id="890">890</span>
+<span id="891">891</span>
+<span id="892">892</span>
+<span id="893">893</span>
+<span id="894">894</span>
+<span id="895">895</span>
+<span id="896">896</span>
+<span id="897">897</span>
+<span id="898">898</span>
+<span id="899">899</span>
+<span id="900">900</span>
+<span id="901">901</span>
+<span id="902">902</span>
+<span id="903">903</span>
+<span id="904">904</span>
+<span id="905">905</span>
+<span id="906">906</span>
+<span id="907">907</span>
+<span id="908">908</span>
+<span id="909">909</span>
+<span id="910">910</span>
+<span id="911">911</span>
+<span id="912">912</span>
+<span id="913">913</span>
+<span id="914">914</span>
+<span id="915">915</span>
+<span id="916">916</span>
+<span id="917">917</span>
+<span id="918">918</span>
+<span id="919">919</span>
 </pre><pre class='rust '>
 <span class='doccomment'>//! Traits dealing with Postgres data types</span>
 <span class='kw'>pub</span> <span class='kw'>use</span> <span class='self'>self</span>::<span class='ident'>slice</span>::<span class='ident'>Slice</span>;
@@ -931,7 +968,7 @@
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='ident'>prelude</span>::<span class='op'>*</span>;
 <span class='kw'>use</span> <span class='ident'>byteorder</span>::{<span class='ident'>ReadBytesExt</span>, <span class='ident'>WriteBytesExt</span>, <span class='ident'>BigEndian</span>};
 
-<span class='kw'>use</span> <span class='prelude-ty'>Result</span>;
+<span class='kw'>use</span> {<span class='prelude-ty'>Result</span>, <span class='ident'>SessionInfoNew</span>, <span class='ident'>InnerConnection</span>};
 <span class='kw'>use</span> <span class='ident'>error</span>::<span class='ident'>Error</span>;
 <span class='kw'>use</span> <span class='ident'>util</span>;
 
@@ -957,12 +994,13 @@
 <span class='attribute'>#[<span class='ident'>macro_export</span>]</span>
 <span class='macro'>macro_rules</span><span class='macro'>!</span> <span class='ident'>to_sql_checked</span> {
     () <span class='op'>=&gt;</span> {
-        <span class='kw'>fn</span> <span class='ident'>to_sql_checked</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>ty</span>: <span class='kw-2'>&amp;</span><span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>crate</span>::<span class='ident'>types</span>::<span class='ident'>Type</span>, <span class='ident'>out</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> ::<span class='ident'>std</span>::<span class='ident'>io</span>::<span class='ident'>Write</span>)
+        <span class='kw'>fn</span> <span class='ident'>to_sql_checked</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>ty</span>: <span class='kw-2'>&amp;</span><span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>crate</span>::<span class='ident'>types</span>::<span class='ident'>Type</span>, <span class='ident'>out</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> ::<span class='ident'>std</span>::<span class='ident'>io</span>::<span class='ident'>Write</span>,
+                          <span class='ident'>ctx</span>: <span class='kw-2'>&amp;</span><span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>crate</span>::<span class='ident'>types</span>::<span class='ident'>SessionInfo</span>)
                           <span class='op'>-&gt;</span> <span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>crate</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>crate</span>::<span class='ident'>types</span>::<span class='ident'>IsNull</span><span class='op'>&gt;</span> {
             <span class='kw'>if</span> <span class='op'>!</span><span class='op'>&lt;</span><span class='kw'>Self</span> <span class='kw'>as</span> <span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>crate</span>::<span class='ident'>types</span>::<span class='ident'>ToSql</span><span class='op'>&gt;</span>::<span class='ident'>accepts</span>(<span class='ident'>ty</span>) {
                 <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>crate</span>::<span class='ident'>Error</span>::<span class='ident'>WrongType</span>(<span class='ident'>ty</span>.<span class='ident'>clone</span>()));
             }
-            <span class='self'>self</span>.<span class='ident'>to_sql</span>(<span class='ident'>ty</span>, <span class='ident'>out</span>)
+            <span class='self'>self</span>.<span class='ident'>to_sql</span>(<span class='ident'>ty</span>, <span class='ident'>out</span>, <span class='ident'>ctx</span>)
         }
     }
 }
@@ -978,6 +1016,27 @@
 <span class='kw'>mod</span> <span class='ident'>serde</span>;
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>feature</span> <span class='op'>=</span> <span class='string'>&quot;chrono&quot;</span>)]</span>
 <span class='kw'>mod</span> <span class='ident'>chrono</span>;
+
+<span class='doccomment'>/// A structure providing information for conversion methods.</span>
+<span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>SessionInfo</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span><span class='op'>&gt;</span> {
+    <span class='ident'>conn</span>: <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='ident'>InnerConnection</span>,
+}
+
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span><span class='op'>&gt;</span> <span class='ident'>SessionInfoNew</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span><span class='op'>&gt;</span> <span class='kw'>for</span> <span class='ident'>SessionInfo</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span><span class='op'>&gt;</span> {
+    <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>conn</span>: <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='ident'>InnerConnection</span>) <span class='op'>-&gt;</span> <span class='ident'>SessionInfo</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span><span class='op'>&gt;</span> {
+        <span class='ident'>SessionInfo</span> {
+            <span class='ident'>conn</span>: <span class='ident'>conn</span>
+        }
+    }
+}
+
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span><span class='op'>&gt;</span> <span class='ident'>SessionInfo</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span><span class='op'>&gt;</span> {
+    <span class='doccomment'>/// Returns the value of the specified Postgres backend parameter, such</span>
+    <span class='doccomment'>/// as `timezone` or `server_version`.</span>
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>parameter</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>param</span>: <span class='kw-2'>&amp;</span><span class='ident'>str</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='ident'>str</span><span class='op'>&gt;</span> {
+        <span class='self'>self</span>.<span class='ident'>conn</span>.<span class='ident'>parameters</span>.<span class='ident'>get</span>(<span class='ident'>param</span>).<span class='ident'>map</span>(<span class='op'>|</span><span class='ident'>s</span><span class='op'>|</span> <span class='kw-2'>&amp;</span><span class='op'>*</span><span class='op'>*</span><span class='ident'>s</span>)
+    }
+}
 
 <span class='doccomment'>/// A Postgres OID.</span>
 <span class='kw'>pub</span> <span class='kw'>type</span> <span class='ident'>Oid</span> <span class='op'>=</span> <span class='ident'>u32</span>;
@@ -1438,9 +1497,10 @@
     <span class='doccomment'>/// The default implementation calls `FromSql::from_sql` when `raw` is</span>
     <span class='doccomment'>/// `Some` and returns `Err(Error::WasNull)` when `raw` is `None`. It does</span>
     <span class='doccomment'>/// not typically need to be overridden.</span>
-    <span class='kw'>fn</span> <span class='ident'>from_sql_nullable</span><span class='op'>&lt;</span><span class='ident'>R</span>: <span class='ident'>Read</span><span class='op'>&gt;</span>(<span class='ident'>ty</span>: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='ident'>raw</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>R</span><span class='op'>&gt;</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='kw'>Self</span><span class='op'>&gt;</span> {
+    <span class='kw'>fn</span> <span class='ident'>from_sql_nullable</span><span class='op'>&lt;</span><span class='ident'>R</span>: <span class='ident'>Read</span><span class='op'>&gt;</span>(<span class='ident'>ty</span>: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='ident'>raw</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>R</span><span class='op'>&gt;</span>, <span class='ident'>ctx</span>: <span class='kw-2'>&amp;</span><span class='ident'>SessionInfo</span>)
+                                  <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='kw'>Self</span><span class='op'>&gt;</span> {
         <span class='kw'>match</span> <span class='ident'>raw</span> {
-            <span class='prelude-val'>Some</span>(<span class='ident'>raw</span>) <span class='op'>=&gt;</span> <span class='ident'>FromSql</span>::<span class='ident'>from_sql</span>(<span class='ident'>ty</span>, <span class='ident'>raw</span>),
+            <span class='prelude-val'>Some</span>(<span class='ident'>raw</span>) <span class='op'>=&gt;</span> <span class='ident'>FromSql</span>::<span class='ident'>from_sql</span>(<span class='ident'>ty</span>, <span class='ident'>raw</span>, <span class='ident'>ctx</span>),
             <span class='prelude-val'>None</span> <span class='op'>=&gt;</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>WasNull</span>),
         }
     }
@@ -1450,7 +1510,7 @@
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// The caller of this method is responsible for ensuring that this type</span>
     <span class='doccomment'>/// is compatible with the Postgres `Type`.</span>
-    <span class='kw'>fn</span> <span class='ident'>from_sql</span><span class='op'>&lt;</span><span class='ident'>R</span>: <span class='ident'>Read</span><span class='op'>&gt;</span>(<span class='ident'>ty</span>: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='ident'>raw</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>R</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='kw'>Self</span><span class='op'>&gt;</span>;
+    <span class='kw'>fn</span> <span class='ident'>from_sql</span><span class='op'>&lt;</span><span class='ident'>R</span>: <span class='ident'>Read</span><span class='op'>&gt;</span>(<span class='ident'>ty</span>: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='ident'>raw</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>R</span>, <span class='ident'>ctx</span>: <span class='kw-2'>&amp;</span><span class='ident'>SessionInfo</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='kw'>Self</span><span class='op'>&gt;</span>;
 
     <span class='doccomment'>/// Determines if a value of this type can be created from the specified</span>
     <span class='doccomment'>/// Postgres `Type`.</span>
@@ -1458,15 +1518,16 @@
 }
 
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span>: <span class='ident'>FromSql</span><span class='op'>&gt;</span> <span class='ident'>FromSql</span> <span class='kw'>for</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
-    <span class='kw'>fn</span> <span class='ident'>from_sql_nullable</span><span class='op'>&lt;</span><span class='ident'>R</span>: <span class='ident'>Read</span><span class='op'>&gt;</span>(<span class='ident'>ty</span>: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='ident'>raw</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>R</span><span class='op'>&gt;</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span> {
+    <span class='kw'>fn</span> <span class='ident'>from_sql_nullable</span><span class='op'>&lt;</span><span class='ident'>R</span>: <span class='ident'>Read</span><span class='op'>&gt;</span>(<span class='ident'>ty</span>: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='ident'>raw</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>R</span><span class='op'>&gt;</span>, <span class='ident'>ctx</span>: <span class='kw-2'>&amp;</span><span class='ident'>SessionInfo</span>)
+                                  <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span> {
         <span class='kw'>match</span> <span class='ident'>raw</span> {
-            <span class='prelude-val'>Some</span>(<span class='ident'>raw</span>) <span class='op'>=&gt;</span> <span class='op'>&lt;</span><span class='ident'>T</span> <span class='kw'>as</span> <span class='ident'>FromSql</span><span class='op'>&gt;</span>::<span class='ident'>from_sql</span>(<span class='ident'>ty</span>, <span class='ident'>raw</span>).<span class='ident'>map</span>(<span class='prelude-val'>Some</span>),
+            <span class='prelude-val'>Some</span>(<span class='ident'>raw</span>) <span class='op'>=&gt;</span> <span class='op'>&lt;</span><span class='ident'>T</span> <span class='kw'>as</span> <span class='ident'>FromSql</span><span class='op'>&gt;</span>::<span class='ident'>from_sql</span>(<span class='ident'>ty</span>, <span class='ident'>raw</span>, <span class='ident'>ctx</span>).<span class='ident'>map</span>(<span class='prelude-val'>Some</span>),
             <span class='prelude-val'>None</span> <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>(<span class='prelude-val'>None</span>),
         }
     }
 
-    <span class='kw'>fn</span> <span class='ident'>from_sql</span><span class='op'>&lt;</span><span class='ident'>R</span>: <span class='ident'>Read</span><span class='op'>&gt;</span>(<span class='ident'>ty</span>: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='ident'>raw</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>R</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span> {
-        <span class='op'>&lt;</span><span class='ident'>T</span> <span class='kw'>as</span> <span class='ident'>FromSql</span><span class='op'>&gt;</span>::<span class='ident'>from_sql</span>(<span class='ident'>ty</span>, <span class='ident'>raw</span>).<span class='ident'>map</span>(<span class='prelude-val'>Some</span>)
+    <span class='kw'>fn</span> <span class='ident'>from_sql</span><span class='op'>&lt;</span><span class='ident'>R</span>: <span class='ident'>Read</span><span class='op'>&gt;</span>(<span class='ident'>ty</span>: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='ident'>raw</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>R</span>, <span class='ident'>ctx</span>: <span class='kw-2'>&amp;</span><span class='ident'>SessionInfo</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span> {
+        <span class='op'>&lt;</span><span class='ident'>T</span> <span class='kw'>as</span> <span class='ident'>FromSql</span><span class='op'>&gt;</span>::<span class='ident'>from_sql</span>(<span class='ident'>ty</span>, <span class='ident'>raw</span>, <span class='ident'>ctx</span>).<span class='ident'>map</span>(<span class='prelude-val'>Some</span>)
     }
 
     <span class='kw'>fn</span> <span class='ident'>accepts</span>(<span class='ident'>ty</span>: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>) <span class='op'>-&gt;</span> <span class='ident'>bool</span> {
@@ -1475,7 +1536,7 @@
 }
 
 <span class='kw'>impl</span> <span class='ident'>FromSql</span> <span class='kw'>for</span> <span class='ident'>bool</span> {
-    <span class='kw'>fn</span> <span class='ident'>from_sql</span><span class='op'>&lt;</span><span class='ident'>R</span>: <span class='ident'>Read</span><span class='op'>&gt;</span>(_: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='ident'>raw</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>R</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>bool</span><span class='op'>&gt;</span> {
+    <span class='kw'>fn</span> <span class='ident'>from_sql</span><span class='op'>&lt;</span><span class='ident'>R</span>: <span class='ident'>Read</span><span class='op'>&gt;</span>(_: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='ident'>raw</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>R</span>, _: <span class='kw-2'>&amp;</span><span class='ident'>SessionInfo</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>bool</span><span class='op'>&gt;</span> {
         <span class='prelude-val'>Ok</span>(<span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>raw</span>.<span class='ident'>read_u8</span>()) <span class='op'>!=</span> <span class='number'>0</span>)
     }
 
@@ -1483,7 +1544,7 @@
 }
 
 <span class='kw'>impl</span> <span class='ident'>FromSql</span> <span class='kw'>for</span> <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>u8</span><span class='op'>&gt;</span> {
-    <span class='kw'>fn</span> <span class='ident'>from_sql</span><span class='op'>&lt;</span><span class='ident'>R</span>: <span class='ident'>Read</span><span class='op'>&gt;</span>(_: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='ident'>raw</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>R</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>u8</span><span class='op'>&gt;&gt;</span> {
+    <span class='kw'>fn</span> <span class='ident'>from_sql</span><span class='op'>&lt;</span><span class='ident'>R</span>: <span class='ident'>Read</span><span class='op'>&gt;</span>(_: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='ident'>raw</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>R</span>, _: <span class='kw-2'>&amp;</span><span class='ident'>SessionInfo</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>u8</span><span class='op'>&gt;&gt;</span> {
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>buf</span> <span class='op'>=</span> <span class='macro'>vec</span><span class='macro'>!</span>[];
         <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>raw</span>.<span class='ident'>read_to_end</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>buf</span>));
         <span class='prelude-val'>Ok</span>(<span class='ident'>buf</span>)
@@ -1493,7 +1554,7 @@
 }
 
 <span class='kw'>impl</span> <span class='ident'>FromSql</span> <span class='kw'>for</span> <span class='ident'>String</span> {
-    <span class='kw'>fn</span> <span class='ident'>from_sql</span><span class='op'>&lt;</span><span class='ident'>R</span>: <span class='ident'>Read</span><span class='op'>&gt;</span>(_: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='ident'>raw</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>R</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>String</span><span class='op'>&gt;</span> {
+    <span class='kw'>fn</span> <span class='ident'>from_sql</span><span class='op'>&lt;</span><span class='ident'>R</span>: <span class='ident'>Read</span><span class='op'>&gt;</span>(_: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='ident'>raw</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>R</span>, _: <span class='kw-2'>&amp;</span><span class='ident'>SessionInfo</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>String</span><span class='op'>&gt;</span> {
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>buf</span> <span class='op'>=</span> <span class='macro'>vec</span><span class='macro'>!</span>[];
         <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>raw</span>.<span class='ident'>read_to_end</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>buf</span>));
         <span class='ident'>String</span>::<span class='ident'>from_utf8</span>(<span class='ident'>buf</span>).<span class='ident'>map_err</span>(<span class='op'>|</span>_<span class='op'>|</span> <span class='ident'>Error</span>::<span class='ident'>BadResponse</span>)
@@ -1509,7 +1570,7 @@
 }
 
 <span class='kw'>impl</span> <span class='ident'>FromSql</span> <span class='kw'>for</span> <span class='ident'>i8</span> {
-    <span class='kw'>fn</span> <span class='ident'>from_sql</span><span class='op'>&lt;</span><span class='ident'>R</span>: <span class='ident'>Read</span><span class='op'>&gt;</span>(_: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='ident'>raw</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>R</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>i8</span><span class='op'>&gt;</span> {
+    <span class='kw'>fn</span> <span class='ident'>from_sql</span><span class='op'>&lt;</span><span class='ident'>R</span>: <span class='ident'>Read</span><span class='op'>&gt;</span>(_: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='ident'>raw</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>R</span>, _: <span class='kw-2'>&amp;</span><span class='ident'>SessionInfo</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>i8</span><span class='op'>&gt;</span> {
         <span class='prelude-val'>Ok</span>(<span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>raw</span>.<span class='ident'>read_i8</span>()))
     }
 
@@ -1519,7 +1580,7 @@
 <span class='macro'>macro_rules</span><span class='macro'>!</span> <span class='ident'>primitive_from</span> {
     (<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>t</span>:<span class='ident'>ty</span>, <span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>f</span>:<span class='ident'>ident</span>, $(<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>expected</span>:<span class='ident'>pat</span>),<span class='op'>+</span>) <span class='op'>=&gt;</span> {
         <span class='kw'>impl</span> <span class='ident'>FromSql</span> <span class='kw'>for</span> <span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>t</span> {
-            <span class='kw'>fn</span> <span class='ident'>from_sql</span><span class='op'>&lt;</span><span class='ident'>R</span>: <span class='ident'>Read</span><span class='op'>&gt;</span>(_: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='ident'>raw</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>R</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>t</span><span class='op'>&gt;</span> {
+            <span class='kw'>fn</span> <span class='ident'>from_sql</span><span class='op'>&lt;</span><span class='ident'>R</span>: <span class='ident'>Read</span><span class='op'>&gt;</span>(_: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='ident'>raw</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>R</span>, _: <span class='kw-2'>&amp;</span><span class='ident'>SessionInfo</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>t</span><span class='op'>&gt;</span> {
                 <span class='prelude-val'>Ok</span>(<span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>raw</span>.<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>f</span>::<span class='op'>&lt;</span><span class='ident'>BigEndian</span><span class='op'>&gt;</span>()))
             }
 
@@ -1536,7 +1597,8 @@
 <span class='macro'>primitive_from</span><span class='macro'>!</span>(<span class='ident'>f64</span>, <span class='ident'>read_f64</span>, <span class='ident'>Type</span>::<span class='ident'>Float8</span>);
 
 <span class='kw'>impl</span> <span class='ident'>FromSql</span> <span class='kw'>for</span> <span class='ident'>HashMap</span><span class='op'>&lt;</span><span class='ident'>String</span>, <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>String</span><span class='op'>&gt;&gt;</span> {
-    <span class='kw'>fn</span> <span class='ident'>from_sql</span><span class='op'>&lt;</span><span class='ident'>R</span>: <span class='ident'>Read</span><span class='op'>&gt;</span>(_: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='ident'>raw</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>R</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>HashMap</span><span class='op'>&lt;</span><span class='ident'>String</span>, <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>String</span><span class='op'>&gt;&gt;</span><span class='op'>&gt;</span> {
+    <span class='kw'>fn</span> <span class='ident'>from_sql</span><span class='op'>&lt;</span><span class='ident'>R</span>: <span class='ident'>Read</span><span class='op'>&gt;</span>(_: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='ident'>raw</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>R</span>, _: <span class='kw-2'>&amp;</span><span class='ident'>SessionInfo</span>)
+                         <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>HashMap</span><span class='op'>&lt;</span><span class='ident'>String</span>, <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>String</span><span class='op'>&gt;&gt;</span><span class='op'>&gt;</span> {
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>map</span> <span class='op'>=</span> <span class='ident'>HashMap</span>::<span class='ident'>new</span>();
 
         <span class='kw'>let</span> <span class='ident'>count</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>raw</span>.<span class='ident'>read_i32</span>::<span class='op'>&lt;</span><span class='ident'>BigEndian</span><span class='op'>&gt;</span>());
@@ -1639,7 +1701,7 @@
     <span class='doccomment'>/// The return value indicates if this value should be represented as</span>
     <span class='doccomment'>/// `NULL`. If this is the case, implementations **must not** write</span>
     <span class='doccomment'>/// anything to `out`.</span>
-    <span class='kw'>fn</span> <span class='ident'>to_sql</span><span class='op'>&lt;</span><span class='ident'>W</span>: ?<span class='ident'>Sized</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>ty</span>: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='ident'>out</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>W</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>IsNull</span><span class='op'>&gt;</span>
+    <span class='kw'>fn</span> <span class='ident'>to_sql</span><span class='op'>&lt;</span><span class='ident'>W</span>: ?<span class='ident'>Sized</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>ty</span>: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='ident'>out</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>W</span>, <span class='ident'>ctx</span>: <span class='kw-2'>&amp;</span><span class='ident'>SessionInfo</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>IsNull</span><span class='op'>&gt;</span>
             <span class='kw'>where</span> <span class='kw'>Self</span>: <span class='ident'>Sized</span>, <span class='ident'>W</span>: <span class='ident'>Write</span>;
 
     <span class='doccomment'>/// Determines if a value of this type can be converted to the specified</span>
@@ -1650,15 +1712,17 @@
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// *All* implementations of this method should be generated by the</span>
     <span class='doccomment'>/// `to_sql_checked!()` macro.</span>
-    <span class='kw'>fn</span> <span class='ident'>to_sql_checked</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>ty</span>: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='ident'>out</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Write</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>IsNull</span><span class='op'>&gt;</span>;
+    <span class='kw'>fn</span> <span class='ident'>to_sql_checked</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>ty</span>: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='ident'>out</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Write</span>, <span class='ident'>ctx</span>: <span class='kw-2'>&amp;</span><span class='ident'>SessionInfo</span>)
+                      <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>IsNull</span><span class='op'>&gt;</span>;
 }
 
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span>: <span class='ident'>ToSql</span><span class='op'>&gt;</span> <span class='ident'>ToSql</span> <span class='kw'>for</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
     <span class='macro'>to_sql_checked</span><span class='macro'>!</span>();
 
-    <span class='kw'>fn</span> <span class='ident'>to_sql</span><span class='op'>&lt;</span><span class='ident'>W</span>: <span class='ident'>Write</span><span class='op'>+</span>?<span class='ident'>Sized</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>ty</span>: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='ident'>out</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>W</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>IsNull</span><span class='op'>&gt;</span> {
+    <span class='kw'>fn</span> <span class='ident'>to_sql</span><span class='op'>&lt;</span><span class='ident'>W</span>: <span class='ident'>Write</span><span class='op'>+</span>?<span class='ident'>Sized</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>ty</span>: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='ident'>out</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>W</span>, <span class='ident'>ctx</span>: <span class='kw-2'>&amp;</span><span class='ident'>SessionInfo</span>)
+                               <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>IsNull</span><span class='op'>&gt;</span> {
         <span class='kw'>match</span> <span class='op'>*</span><span class='self'>self</span> {
-            <span class='prelude-val'>Some</span>(<span class='kw-2'>ref</span> <span class='ident'>val</span>) <span class='op'>=&gt;</span> <span class='ident'>val</span>.<span class='ident'>to_sql</span>(<span class='ident'>ty</span>, <span class='ident'>out</span>),
+            <span class='prelude-val'>Some</span>(<span class='kw-2'>ref</span> <span class='ident'>val</span>) <span class='op'>=&gt;</span> <span class='ident'>val</span>.<span class='ident'>to_sql</span>(<span class='ident'>ty</span>, <span class='ident'>out</span>, <span class='ident'>ctx</span>),
             <span class='prelude-val'>None</span> <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>(<span class='ident'>IsNull</span>::<span class='ident'>Yes</span>),
         }
     }
@@ -1671,7 +1735,8 @@
 <span class='kw'>impl</span> <span class='ident'>ToSql</span> <span class='kw'>for</span> <span class='ident'>bool</span> {
     <span class='macro'>to_sql_checked</span><span class='macro'>!</span>();
 
-    <span class='kw'>fn</span> <span class='ident'>to_sql</span><span class='op'>&lt;</span><span class='ident'>W</span>: <span class='ident'>Write</span><span class='op'>+</span>?<span class='ident'>Sized</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, _: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='kw-2'>mut</span> <span class='ident'>w</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>W</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>IsNull</span><span class='op'>&gt;</span> {
+    <span class='kw'>fn</span> <span class='ident'>to_sql</span><span class='op'>&lt;</span><span class='ident'>W</span>: <span class='ident'>Write</span><span class='op'>+</span>?<span class='ident'>Sized</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, _: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='kw-2'>mut</span> <span class='ident'>w</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>W</span>, _: <span class='kw-2'>&amp;</span><span class='ident'>SessionInfo</span>)
+                               <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>IsNull</span><span class='op'>&gt;</span> {
         <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>w</span>.<span class='ident'>write_u8</span>(<span class='op'>*</span><span class='self'>self</span> <span class='kw'>as</span> <span class='ident'>u8</span>));
         <span class='prelude-val'>Ok</span>(<span class='ident'>IsNull</span>::<span class='ident'>No</span>)
     }
@@ -1681,14 +1746,16 @@
 
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span><span class='op'>&gt;</span> <span class='ident'>ToSql</span> <span class='kw'>for</span> <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> [<span class='ident'>u8</span>] {
     <span class='comment'>// FIXME should use to_sql_checked!() but blocked on rust-lang/rust#24308</span>
-    <span class='kw'>fn</span> <span class='ident'>to_sql_checked</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>ty</span>: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='ident'>out</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Write</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>IsNull</span><span class='op'>&gt;</span> {
+    <span class='kw'>fn</span> <span class='ident'>to_sql_checked</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>ty</span>: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='ident'>out</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Write</span>, <span class='ident'>ctx</span>: <span class='kw-2'>&amp;</span><span class='ident'>SessionInfo</span>)
+                      <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>IsNull</span><span class='op'>&gt;</span> {
         <span class='kw'>if</span> <span class='op'>!</span><span class='op'>&lt;</span><span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> [<span class='ident'>u8</span>] <span class='kw'>as</span> <span class='ident'>ToSql</span><span class='op'>&gt;</span>::<span class='ident'>accepts</span>(<span class='ident'>ty</span>) {
             <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>WrongType</span>(<span class='ident'>ty</span>.<span class='ident'>clone</span>()));
         }
-        <span class='self'>self</span>.<span class='ident'>to_sql</span>(<span class='ident'>ty</span>, <span class='ident'>out</span>)
+        <span class='self'>self</span>.<span class='ident'>to_sql</span>(<span class='ident'>ty</span>, <span class='ident'>out</span>, <span class='ident'>ctx</span>)
     }
 
-    <span class='kw'>fn</span> <span class='ident'>to_sql</span><span class='op'>&lt;</span><span class='ident'>W</span>: <span class='ident'>Write</span><span class='op'>+</span>?<span class='ident'>Sized</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, _: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='ident'>w</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>W</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>IsNull</span><span class='op'>&gt;</span> {
+    <span class='kw'>fn</span> <span class='ident'>to_sql</span><span class='op'>&lt;</span><span class='ident'>W</span>: <span class='ident'>Write</span><span class='op'>+</span>?<span class='ident'>Sized</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, _: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='ident'>w</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>W</span>, _: <span class='kw-2'>&amp;</span><span class='ident'>SessionInfo</span>)
+                               <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>IsNull</span><span class='op'>&gt;</span> {
         <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>w</span>.<span class='ident'>write_all</span>(<span class='op'>*</span><span class='self'>self</span>));
         <span class='prelude-val'>Ok</span>(<span class='ident'>IsNull</span>::<span class='ident'>No</span>)
     }
@@ -1699,8 +1766,9 @@
 <span class='kw'>impl</span> <span class='ident'>ToSql</span> <span class='kw'>for</span> <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>u8</span><span class='op'>&gt;</span> {
     <span class='macro'>to_sql_checked</span><span class='macro'>!</span>();
 
-    <span class='kw'>fn</span> <span class='ident'>to_sql</span><span class='op'>&lt;</span><span class='ident'>W</span>: <span class='ident'>Write</span><span class='op'>+</span>?<span class='ident'>Sized</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>ty</span>: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='ident'>w</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>W</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>IsNull</span><span class='op'>&gt;</span> {
-        <span class='op'>&lt;</span><span class='kw-2'>&amp;</span>[<span class='ident'>u8</span>] <span class='kw'>as</span> <span class='ident'>ToSql</span><span class='op'>&gt;</span>::<span class='ident'>to_sql</span>(<span class='op'>&amp;&amp;</span><span class='op'>*</span><span class='op'>*</span><span class='self'>self</span>, <span class='ident'>ty</span>, <span class='ident'>w</span>)
+    <span class='kw'>fn</span> <span class='ident'>to_sql</span><span class='op'>&lt;</span><span class='ident'>W</span>: <span class='ident'>Write</span><span class='op'>+</span>?<span class='ident'>Sized</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>ty</span>: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='ident'>w</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>W</span>, <span class='ident'>ctx</span>: <span class='kw-2'>&amp;</span><span class='ident'>SessionInfo</span>)
+                               <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>IsNull</span><span class='op'>&gt;</span> {
+        <span class='op'>&lt;</span><span class='kw-2'>&amp;</span>[<span class='ident'>u8</span>] <span class='kw'>as</span> <span class='ident'>ToSql</span><span class='op'>&gt;</span>::<span class='ident'>to_sql</span>(<span class='op'>&amp;&amp;</span><span class='op'>*</span><span class='op'>*</span><span class='self'>self</span>, <span class='ident'>ty</span>, <span class='ident'>w</span>, <span class='ident'>ctx</span>)
     }
 
     <span class='kw'>fn</span> <span class='ident'>accepts</span>(<span class='ident'>ty</span>: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>) <span class='op'>-&gt;</span> <span class='ident'>bool</span> {
@@ -1710,14 +1778,16 @@
 
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span><span class='op'>&gt;</span> <span class='ident'>ToSql</span> <span class='kw'>for</span> <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='ident'>str</span> {
     <span class='comment'>// FIXME should use to_sql_checked!() but blocked on rust-lang/rust#24308</span>
-    <span class='kw'>fn</span> <span class='ident'>to_sql_checked</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>ty</span>: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='ident'>out</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Write</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>IsNull</span><span class='op'>&gt;</span> {
+    <span class='kw'>fn</span> <span class='ident'>to_sql_checked</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>ty</span>: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='ident'>out</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Write</span>, <span class='ident'>ctx</span>: <span class='kw-2'>&amp;</span><span class='ident'>SessionInfo</span>)
+                      <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>IsNull</span><span class='op'>&gt;</span> {
         <span class='kw'>if</span> <span class='op'>!</span><span class='op'>&lt;</span><span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='ident'>str</span> <span class='kw'>as</span> <span class='ident'>ToSql</span><span class='op'>&gt;</span>::<span class='ident'>accepts</span>(<span class='ident'>ty</span>) {
             <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>WrongType</span>(<span class='ident'>ty</span>.<span class='ident'>clone</span>()));
         }
-        <span class='self'>self</span>.<span class='ident'>to_sql</span>(<span class='ident'>ty</span>, <span class='ident'>out</span>)
+        <span class='self'>self</span>.<span class='ident'>to_sql</span>(<span class='ident'>ty</span>, <span class='ident'>out</span>, <span class='ident'>ctx</span>)
     }
 
-    <span class='kw'>fn</span> <span class='ident'>to_sql</span><span class='op'>&lt;</span><span class='ident'>W</span>: <span class='ident'>Write</span><span class='op'>+</span>?<span class='ident'>Sized</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, _: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='ident'>w</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>W</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>IsNull</span><span class='op'>&gt;</span> {
+    <span class='kw'>fn</span> <span class='ident'>to_sql</span><span class='op'>&lt;</span><span class='ident'>W</span>: <span class='ident'>Write</span><span class='op'>+</span>?<span class='ident'>Sized</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, _: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='ident'>w</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>W</span>, _: <span class='kw-2'>&amp;</span><span class='ident'>SessionInfo</span>)
+                               <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>IsNull</span><span class='op'>&gt;</span> {
         <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>w</span>.<span class='ident'>write_all</span>(<span class='self'>self</span>.<span class='ident'>as_bytes</span>()));
         <span class='prelude-val'>Ok</span>(<span class='ident'>IsNull</span>::<span class='ident'>No</span>)
     }
@@ -1734,8 +1804,9 @@
 <span class='kw'>impl</span> <span class='ident'>ToSql</span> <span class='kw'>for</span> <span class='ident'>String</span> {
     <span class='macro'>to_sql_checked</span><span class='macro'>!</span>();
 
-    <span class='kw'>fn</span> <span class='ident'>to_sql</span><span class='op'>&lt;</span><span class='ident'>W</span>: <span class='ident'>Write</span><span class='op'>+</span>?<span class='ident'>Sized</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>ty</span>: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='ident'>w</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>W</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>IsNull</span><span class='op'>&gt;</span> {
-        <span class='op'>&lt;</span><span class='kw-2'>&amp;</span><span class='ident'>str</span> <span class='kw'>as</span> <span class='ident'>ToSql</span><span class='op'>&gt;</span>::<span class='ident'>to_sql</span>(<span class='op'>&amp;&amp;</span><span class='op'>*</span><span class='op'>*</span><span class='self'>self</span>, <span class='ident'>ty</span>, <span class='ident'>w</span>)
+    <span class='kw'>fn</span> <span class='ident'>to_sql</span><span class='op'>&lt;</span><span class='ident'>W</span>: <span class='ident'>Write</span><span class='op'>+</span>?<span class='ident'>Sized</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>ty</span>: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='ident'>w</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>W</span>, <span class='ident'>ctx</span>: <span class='kw-2'>&amp;</span><span class='ident'>SessionInfo</span>)
+                               <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>IsNull</span><span class='op'>&gt;</span> {
+        <span class='op'>&lt;</span><span class='kw-2'>&amp;</span><span class='ident'>str</span> <span class='kw'>as</span> <span class='ident'>ToSql</span><span class='op'>&gt;</span>::<span class='ident'>to_sql</span>(<span class='op'>&amp;&amp;</span><span class='op'>*</span><span class='op'>*</span><span class='self'>self</span>, <span class='ident'>ty</span>, <span class='ident'>w</span>, <span class='ident'>ctx</span>)
     }
 
     <span class='kw'>fn</span> <span class='ident'>accepts</span>(<span class='ident'>ty</span>: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>) <span class='op'>-&gt;</span> <span class='ident'>bool</span> {
@@ -1746,7 +1817,8 @@
 <span class='kw'>impl</span> <span class='ident'>ToSql</span> <span class='kw'>for</span> <span class='ident'>i8</span> {
     <span class='macro'>to_sql_checked</span><span class='macro'>!</span>();
 
-    <span class='kw'>fn</span> <span class='ident'>to_sql</span><span class='op'>&lt;</span><span class='ident'>W</span>: <span class='ident'>Write</span><span class='op'>+</span>?<span class='ident'>Sized</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, _: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='kw-2'>mut</span> <span class='ident'>w</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>W</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>IsNull</span><span class='op'>&gt;</span> {
+    <span class='kw'>fn</span> <span class='ident'>to_sql</span><span class='op'>&lt;</span><span class='ident'>W</span>: <span class='ident'>Write</span><span class='op'>+</span>?<span class='ident'>Sized</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, _: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='kw-2'>mut</span> <span class='ident'>w</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>W</span>, _: <span class='kw-2'>&amp;</span><span class='ident'>SessionInfo</span>)
+                               <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>IsNull</span><span class='op'>&gt;</span> {
         <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>w</span>.<span class='ident'>write_i8</span>(<span class='op'>*</span><span class='self'>self</span>));
         <span class='prelude-val'>Ok</span>(<span class='ident'>IsNull</span>::<span class='ident'>No</span>)
     }
@@ -1759,7 +1831,8 @@
         <span class='kw'>impl</span> <span class='ident'>ToSql</span> <span class='kw'>for</span> <span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>t</span> {
             <span class='macro'>to_sql_checked</span><span class='macro'>!</span>();
 
-            <span class='kw'>fn</span> <span class='ident'>to_sql</span><span class='op'>&lt;</span><span class='ident'>W</span>: <span class='ident'>Write</span><span class='op'>+</span>?<span class='ident'>Sized</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, _: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='kw-2'>mut</span> <span class='ident'>w</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>W</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>IsNull</span><span class='op'>&gt;</span> {
+            <span class='kw'>fn</span> <span class='ident'>to_sql</span><span class='op'>&lt;</span><span class='ident'>W</span>: <span class='ident'>Write</span><span class='op'>+</span>?<span class='ident'>Sized</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, _: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='kw-2'>mut</span> <span class='ident'>w</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>W</span>, _: <span class='kw-2'>&amp;</span><span class='ident'>SessionInfo</span>)
+                                       <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>IsNull</span><span class='op'>&gt;</span> {
                 <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>w</span>.<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>f</span>::<span class='op'>&lt;</span><span class='ident'>BigEndian</span><span class='op'>&gt;</span>(<span class='op'>*</span><span class='self'>self</span>));
                 <span class='prelude-val'>Ok</span>(<span class='ident'>IsNull</span>::<span class='ident'>No</span>)
             }
@@ -1779,7 +1852,8 @@
 <span class='kw'>impl</span> <span class='ident'>ToSql</span> <span class='kw'>for</span> <span class='ident'>HashMap</span><span class='op'>&lt;</span><span class='ident'>String</span>, <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>String</span><span class='op'>&gt;&gt;</span> {
     <span class='macro'>to_sql_checked</span><span class='macro'>!</span>();
 
-    <span class='kw'>fn</span> <span class='ident'>to_sql</span><span class='op'>&lt;</span><span class='ident'>W</span>: <span class='ident'>Write</span><span class='op'>+</span>?<span class='ident'>Sized</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, _: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='kw-2'>mut</span> <span class='ident'>w</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>W</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>IsNull</span><span class='op'>&gt;</span> {
+    <span class='kw'>fn</span> <span class='ident'>to_sql</span><span class='op'>&lt;</span><span class='ident'>W</span>: <span class='ident'>Write</span><span class='op'>+</span>?<span class='ident'>Sized</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, _: <span class='kw-2'>&amp;</span><span class='ident'>Type</span>, <span class='kw-2'>mut</span> <span class='ident'>w</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>W</span>, _: <span class='kw-2'>&amp;</span><span class='ident'>SessionInfo</span>)
+                               <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>IsNull</span><span class='op'>&gt;</span> {
         <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>w</span>.<span class='ident'>write_i32</span>::<span class='op'>&lt;</span><span class='ident'>BigEndian</span><span class='op'>&gt;</span>(<span class='self'>self</span>.<span class='ident'>len</span>() <span class='kw'>as</span> <span class='ident'>i32</span>));
 
         <span class='kw'>for</span> (<span class='ident'>key</span>, <span class='ident'>val</span>) <span class='kw'>in</span> <span class='self'>self</span> {
