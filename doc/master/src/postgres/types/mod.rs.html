@@ -959,6 +959,39 @@
 <span id="917">917</span>
 <span id="918">918</span>
 <span id="919">919</span>
+<span id="920">920</span>
+<span id="921">921</span>
+<span id="922">922</span>
+<span id="923">923</span>
+<span id="924">924</span>
+<span id="925">925</span>
+<span id="926">926</span>
+<span id="927">927</span>
+<span id="928">928</span>
+<span id="929">929</span>
+<span id="930">930</span>
+<span id="931">931</span>
+<span id="932">932</span>
+<span id="933">933</span>
+<span id="934">934</span>
+<span id="935">935</span>
+<span id="936">936</span>
+<span id="937">937</span>
+<span id="938">938</span>
+<span id="939">939</span>
+<span id="940">940</span>
+<span id="941">941</span>
+<span id="942">942</span>
+<span id="943">943</span>
+<span id="944">944</span>
+<span id="945">945</span>
+<span id="946">946</span>
+<span id="947">947</span>
+<span id="948">948</span>
+<span id="949">949</span>
+<span id="950">950</span>
+<span id="951">951</span>
+<span id="952">952</span>
 </pre><pre class='rust '>
 <span class='doccomment'>//! Traits dealing with Postgres data types</span>
 <span class='kw'>pub</span> <span class='kw'>use</span> <span class='self'>self</span>::<span class='ident'>slice</span>::<span class='ident'>Slice</span>;
@@ -968,11 +1001,9 @@
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='ident'>prelude</span>::<span class='op'>*</span>;
 <span class='kw'>use</span> <span class='ident'>byteorder</span>::{<span class='ident'>ReadBytesExt</span>, <span class='ident'>WriteBytesExt</span>, <span class='ident'>BigEndian</span>};
 
-<span class='kw'>use</span> {<span class='prelude-ty'>Result</span>, <span class='ident'>SessionInfoNew</span>, <span class='ident'>InnerConnection</span>};
+<span class='kw'>use</span> {<span class='prelude-ty'>Result</span>, <span class='ident'>SessionInfoNew</span>, <span class='ident'>InnerConnection</span>, <span class='ident'>OtherNew</span>};
 <span class='kw'>use</span> <span class='ident'>error</span>::<span class='ident'>Error</span>;
 <span class='kw'>use</span> <span class='ident'>util</span>;
-
-<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>ugh_privacy</span>::<span class='ident'>Other</span>;
 
 <span class='doccomment'>/// Generates a simple implementation of `ToSql::accepts` which accepts the</span>
 <span class='doccomment'>/// types passed to it.</span>
@@ -1441,6 +1472,41 @@
     <span class='number'>3927</span> <span class='op'>=&gt;</span> <span class='ident'>Int8RangeArray</span>: <span class='ident'>Kind</span>::<span class='ident'>Array</span>(<span class='ident'>Type</span>::<span class='ident'>Int8Range</span>),
     <span class='attribute'>#[<span class='ident'>doc</span><span class='op'>=</span><span class='string'>&quot;EVENT_TRIGGER&quot;</span>]</span>
     <span class='number'>3838</span> <span class='op'>=&gt;</span> <span class='ident'>EventTrigger</span>: <span class='ident'>Kind</span>::<span class='ident'>Simple</span>
+}
+
+<span class='doccomment'>/// Information about an unknown type.</span>
+<span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>PartialEq</span>, <span class='ident'>Eq</span>, <span class='ident'>Clone</span>, <span class='ident'>Debug</span>)]</span>
+<span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>Other</span> {
+    <span class='ident'>name</span>: <span class='ident'>String</span>,
+    <span class='ident'>oid</span>: <span class='ident'>Oid</span>,
+    <span class='ident'>kind</span>: <span class='ident'>Kind</span>,
+}
+
+<span class='kw'>impl</span> <span class='ident'>OtherNew</span> <span class='kw'>for</span> <span class='ident'>Other</span> {
+    <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>name</span>: <span class='ident'>String</span>, <span class='ident'>oid</span>: <span class='ident'>Oid</span>, <span class='ident'>kind</span>: <span class='ident'>Kind</span>) <span class='op'>-&gt;</span> <span class='ident'>Other</span> {
+        <span class='ident'>Other</span> {
+            <span class='ident'>name</span>: <span class='ident'>name</span>,
+            <span class='ident'>oid</span>: <span class='ident'>oid</span>,
+            <span class='ident'>kind</span>: <span class='ident'>kind</span>,
+        }
+    }
+}
+
+<span class='kw'>impl</span> <span class='ident'>Other</span> {
+    <span class='doccomment'>/// The name of the type.</span>
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>name</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='ident'>str</span> {
+        <span class='kw-2'>&amp;</span><span class='self'>self</span>.<span class='ident'>name</span>
+    }
+
+    <span class='doccomment'>/// The OID of this type.</span>
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>oid</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>Oid</span> {
+        <span class='self'>self</span>.<span class='ident'>oid</span>
+    }
+
+    <span class='doccomment'>/// The kind of this type.</span>
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>kind</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='ident'>Kind</span> {
+        <span class='kw-2'>&amp;</span><span class='self'>self</span>.<span class='ident'>kind</span>
+    }
 }
 
 <span class='doccomment'>/// A trait for types that can be created from a Postgres value.</span>

@@ -2361,6 +2361,15 @@
 <span id="2319">2319</span>
 <span id="2320">2320</span>
 <span id="2321">2321</span>
+<span id="2322">2322</span>
+<span id="2323">2323</span>
+<span id="2324">2324</span>
+<span id="2325">2325</span>
+<span id="2326">2326</span>
+<span id="2327">2327</span>
+<span id="2328">2328</span>
+<span id="2329">2329</span>
+<span id="2330">2330</span>
 </pre><pre class='rust '>
 <span class='doccomment'>//! Rust-Postgres is a pure-Rust frontend for the popular PostgreSQL database. It</span>
 <span class='doccomment'>//! exposes a high level interface in the vein of JDBC or Go&#39;s `database/sql`</span>
@@ -2442,7 +2451,7 @@
 
 <span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>error</span>::{<span class='ident'>Error</span>, <span class='ident'>ConnectError</span>, <span class='ident'>SqlState</span>, <span class='ident'>DbError</span>, <span class='ident'>ErrorPosition</span>};
 <span class='attribute'>#[<span class='ident'>doc</span>(<span class='ident'>inline</span>)]</span>
-<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>types</span>::{<span class='ident'>Oid</span>, <span class='ident'>Type</span>, <span class='ident'>Kind</span>, <span class='ident'>ToSql</span>, <span class='ident'>FromSql</span>, <span class='ident'>SessionInfo</span>};
+<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>types</span>::{<span class='ident'>Oid</span>, <span class='ident'>Type</span>, <span class='ident'>Other</span>, <span class='ident'>Kind</span>, <span class='ident'>ToSql</span>, <span class='ident'>FromSql</span>, <span class='ident'>SessionInfo</span>};
 <span class='kw'>use</span> <span class='ident'>io</span>::{<span class='ident'>StreamWrapper</span>, <span class='ident'>NegotiateSsl</span>};
 <span class='kw'>use</span> <span class='ident'>types</span>::<span class='ident'>IsNull</span>;
 <span class='attribute'>#[<span class='ident'>doc</span>(<span class='ident'>inline</span>)]</span>
@@ -2459,7 +2468,6 @@
 <span class='kw'>mod</span> <span class='ident'>error</span>;
 <span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>io</span>;
 <span class='kw'>mod</span> <span class='ident'>message</span>;
-<span class='kw'>mod</span> <span class='ident'>ugh_privacy</span>;
 <span class='kw'>mod</span> <span class='ident'>priv_io</span>;
 <span class='kw'>mod</span> <span class='ident'>url</span>;
 <span class='kw'>mod</span> <span class='ident'>util</span>;
@@ -2912,7 +2920,7 @@
                     <span class='ident'>conn</span>.<span class='ident'>cancel_data</span>.<span class='ident'>secret_key</span> <span class='op'>=</span> <span class='ident'>secret_key</span>;
                 }
                 <span class='ident'>ReadyForQuery</span> { .. } <span class='op'>=&gt;</span> <span class='kw'>break</span>,
-                <span class='ident'>ErrorResponse</span> { <span class='ident'>fields</span> } <span class='op'>=&gt;</span> <span class='kw'>return</span> <span class='ident'>ugh_privacy</span>::<span class='ident'>dberror_new_connect</span>(<span class='ident'>fields</span>),
+                <span class='ident'>ErrorResponse</span> { <span class='ident'>fields</span> } <span class='op'>=&gt;</span> <span class='kw'>return</span> <span class='ident'>DbError</span>::<span class='ident'>new_connect</span>(<span class='ident'>fields</span>),
                 _ <span class='op'>=&gt;</span> <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>ConnectError</span>::<span class='ident'>BadResponse</span>),
             }
         }
@@ -2960,7 +2968,7 @@
         <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='op'>!</span><span class='self'>self</span>.<span class='ident'>desynchronized</span>);
         <span class='kw'>match</span> <span class='macro'>try_desync</span><span class='macro'>!</span>(<span class='self'>self</span>, <span class='self'>self</span>.<span class='ident'>stream</span>.<span class='ident'>read_message</span>()) {
             <span class='ident'>NoticeResponse</span> { <span class='ident'>fields</span> } <span class='op'>=&gt;</span> {
-                <span class='kw'>if</span> <span class='kw'>let</span> <span class='prelude-val'>Ok</span>(<span class='ident'>err</span>) <span class='op'>=</span> <span class='ident'>ugh_privacy</span>::<span class='ident'>dberror_new_raw</span>(<span class='ident'>fields</span>) {
+                <span class='kw'>if</span> <span class='kw'>let</span> <span class='prelude-val'>Ok</span>(<span class='ident'>err</span>) <span class='op'>=</span> <span class='ident'>DbError</span>::<span class='ident'>new_raw</span>(<span class='ident'>fields</span>) {
                     <span class='self'>self</span>.<span class='ident'>notice_handler</span>.<span class='ident'>handle_notice</span>(<span class='ident'>err</span>);
                 }
                 <span class='prelude-val'>Ok</span>(<span class='prelude-val'>None</span>)
@@ -3023,13 +3031,13 @@
             <span class='op'>|</span> <span class='ident'>AuthenticationSCMCredential</span>
             <span class='op'>|</span> <span class='ident'>AuthenticationGSS</span>
             <span class='op'>|</span> <span class='ident'>AuthenticationSSPI</span> <span class='op'>=&gt;</span> <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>ConnectError</span>::<span class='ident'>UnsupportedAuthentication</span>),
-            <span class='ident'>ErrorResponse</span> { <span class='ident'>fields</span> } <span class='op'>=&gt;</span> <span class='kw'>return</span> <span class='ident'>ugh_privacy</span>::<span class='ident'>dberror_new_connect</span>(<span class='ident'>fields</span>),
+            <span class='ident'>ErrorResponse</span> { <span class='ident'>fields</span> } <span class='op'>=&gt;</span> <span class='kw'>return</span> <span class='ident'>DbError</span>::<span class='ident'>new_connect</span>(<span class='ident'>fields</span>),
             _ <span class='op'>=&gt;</span> <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>ConnectError</span>::<span class='ident'>BadResponse</span>)
         }
 
         <span class='kw'>match</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='ident'>read_message</span>()) {
             <span class='ident'>AuthenticationOk</span> <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>(()),
-            <span class='ident'>ErrorResponse</span> { <span class='ident'>fields</span> } <span class='op'>=&gt;</span> <span class='kw'>return</span> <span class='ident'>ugh_privacy</span>::<span class='ident'>dberror_new_connect</span>(<span class='ident'>fields</span>),
+            <span class='ident'>ErrorResponse</span> { <span class='ident'>fields</span> } <span class='op'>=&gt;</span> <span class='kw'>return</span> <span class='ident'>DbError</span>::<span class='ident'>new_connect</span>(<span class='ident'>fields</span>),
             _ <span class='op'>=&gt;</span> <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>ConnectError</span>::<span class='ident'>BadResponse</span>)
         }
     }
@@ -3057,7 +3065,7 @@
             <span class='ident'>ParseComplete</span> <span class='op'>=&gt;</span> {}
             <span class='ident'>ErrorResponse</span> { <span class='ident'>fields</span> } <span class='op'>=&gt;</span> {
                 <span class='macro'>try</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='ident'>wait_for_ready</span>());
-                <span class='kw'>return</span> <span class='ident'>ugh_privacy</span>::<span class='ident'>dberror_new</span>(<span class='ident'>fields</span>);
+                <span class='kw'>return</span> <span class='ident'>DbError</span>::<span class='ident'>new</span>(<span class='ident'>fields</span>);
             }
             _ <span class='op'>=&gt;</span> <span class='macro'>bad_response</span><span class='macro'>!</span>(<span class='self'>self</span>),
         }
@@ -3176,7 +3184,7 @@
             <span class='ident'>Sync</span>]));
         <span class='kw'>let</span> <span class='ident'>resp</span> <span class='op'>=</span> <span class='kw'>match</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='ident'>read_message</span>()) {
             <span class='ident'>CloseComplete</span> <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>(()),
-            <span class='ident'>ErrorResponse</span> { <span class='ident'>fields</span> } <span class='op'>=&gt;</span> <span class='ident'>ugh_privacy</span>::<span class='ident'>dberror_new</span>(<span class='ident'>fields</span>),
+            <span class='ident'>ErrorResponse</span> { <span class='ident'>fields</span> } <span class='op'>=&gt;</span> <span class='ident'>DbError</span>::<span class='ident'>new</span>(<span class='ident'>fields</span>),
             _ <span class='op'>=&gt;</span> <span class='macro'>bad_response</span><span class='macro'>!</span>(<span class='self'>self</span>)
         };
         <span class='macro'>try</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='ident'>wait_for_ready</span>());
@@ -3215,7 +3223,7 @@
             <span class='ident'>BindComplete</span> <span class='op'>=&gt;</span> {}
             <span class='ident'>ErrorResponse</span> { <span class='ident'>fields</span> } <span class='op'>=&gt;</span> {
                 <span class='macro'>try</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='ident'>wait_for_ready</span>());
-                <span class='kw'>return</span> <span class='ident'>ugh_privacy</span>::<span class='ident'>dberror_new</span>(<span class='ident'>fields</span>);
+                <span class='kw'>return</span> <span class='ident'>DbError</span>::<span class='ident'>new</span>(<span class='ident'>fields</span>);
             }
             _ <span class='op'>=&gt;</span> <span class='macro'>bad_response</span><span class='macro'>!</span>(<span class='self'>self</span>)
         }
@@ -3235,7 +3243,7 @@
             }
             <span class='ident'>ErrorResponse</span> { <span class='ident'>fields</span> } <span class='op'>=&gt;</span> {
                 <span class='macro'>try</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='ident'>wait_for_ready</span>());
-                <span class='kw'>return</span> <span class='ident'>ugh_privacy</span>::<span class='ident'>dberror_new</span>(<span class='ident'>fields</span>);
+                <span class='kw'>return</span> <span class='ident'>DbError</span>::<span class='ident'>new</span>(<span class='ident'>fields</span>);
             }
             _ <span class='op'>=&gt;</span> <span class='macro'>bad_response</span><span class='macro'>!</span>(<span class='self'>self</span>)
         };
@@ -3243,7 +3251,7 @@
             <span class='ident'>CommandComplete</span> { .. } <span class='op'>=&gt;</span> {}
             <span class='ident'>ErrorResponse</span> { <span class='ident'>fields</span> } <span class='op'>=&gt;</span> {
                 <span class='macro'>try</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='ident'>wait_for_ready</span>());
-                <span class='kw'>return</span> <span class='ident'>ugh_privacy</span>::<span class='ident'>dberror_new</span>(<span class='ident'>fields</span>);
+                <span class='kw'>return</span> <span class='ident'>DbError</span>::<span class='ident'>new</span>(<span class='ident'>fields</span>);
             }
             _ <span class='op'>=&gt;</span> <span class='macro'>bad_response</span><span class='macro'>!</span>(<span class='self'>self</span>)
         }
@@ -3258,7 +3266,7 @@
             }
         };
 
-        <span class='kw'>let</span> <span class='ident'>type_</span> <span class='op'>=</span> <span class='ident'>Type</span>::<span class='ident'>Other</span>(<span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='ident'>ugh_privacy</span>::<span class='ident'>new_other</span>(<span class='ident'>name</span>, <span class='ident'>oid</span>, <span class='ident'>kind</span>)));
+        <span class='kw'>let</span> <span class='ident'>type_</span> <span class='op'>=</span> <span class='ident'>Type</span>::<span class='ident'>Other</span>(<span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='ident'>Other</span>::<span class='ident'>new</span>(<span class='ident'>name</span>, <span class='ident'>oid</span>, <span class='ident'>kind</span>)));
         <span class='self'>self</span>.<span class='ident'>unknown_types</span>.<span class='ident'>insert</span>(<span class='ident'>oid</span>, <span class='ident'>type_</span>.<span class='ident'>clone</span>());
         <span class='prelude-val'>Ok</span>(<span class='ident'>type_</span>)
     }
@@ -3297,7 +3305,7 @@
                 }
                 <span class='ident'>ErrorResponse</span> { <span class='ident'>fields</span> } <span class='op'>=&gt;</span> {
                     <span class='macro'>try</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='ident'>wait_for_ready</span>());
-                    <span class='kw'>return</span> <span class='ident'>ugh_privacy</span>::<span class='ident'>dberror_new</span>(<span class='ident'>fields</span>);
+                    <span class='kw'>return</span> <span class='ident'>DbError</span>::<span class='ident'>new</span>(<span class='ident'>fields</span>);
                 }
                 _ <span class='op'>=&gt;</span> {}
             }
@@ -3830,7 +3838,7 @@
             <span class='ident'>BindComplete</span> <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>(()),
             <span class='ident'>ErrorResponse</span> { <span class='ident'>fields</span> } <span class='op'>=&gt;</span> {
                 <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>conn</span>.<span class='ident'>wait_for_ready</span>());
-                <span class='ident'>ugh_privacy</span>::<span class='ident'>dberror_new</span>(<span class='ident'>fields</span>)
+                <span class='ident'>DbError</span>::<span class='ident'>new</span>(<span class='ident'>fields</span>)
             }
             _ <span class='op'>=&gt;</span> {
                 <span class='ident'>conn</span>.<span class='ident'>desynchronized</span> <span class='op'>=</span> <span class='boolval'>true</span>;
@@ -3891,7 +3899,7 @@
                 <span class='ident'>DataRow</span> { .. } <span class='op'>=&gt;</span> {}
                 <span class='ident'>ErrorResponse</span> { <span class='ident'>fields</span> } <span class='op'>=&gt;</span> {
                     <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>conn</span>.<span class='ident'>wait_for_ready</span>());
-                    <span class='kw'>return</span> <span class='ident'>ugh_privacy</span>::<span class='ident'>dberror_new</span>(<span class='ident'>fields</span>);
+                    <span class='kw'>return</span> <span class='ident'>DbError</span>::<span class='ident'>new</span>(<span class='ident'>fields</span>);
                 }
                 <span class='ident'>CommandComplete</span> { <span class='ident'>tag</span> } <span class='op'>=&gt;</span> {
                     <span class='ident'>num</span> <span class='op'>=</span> <span class='ident'>util</span>::<span class='ident'>parse_update_count</span>(<span class='ident'>tag</span>);
@@ -4047,7 +4055,7 @@
             <span class='ident'>DataRow</span> { <span class='ident'>row</span> } <span class='op'>=&gt;</span> <span class='ident'>buf</span>.<span class='ident'>push_back</span>(<span class='ident'>row</span>),
             <span class='ident'>ErrorResponse</span> { <span class='ident'>fields</span> } <span class='op'>=&gt;</span> {
                 <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>conn</span>.<span class='ident'>wait_for_ready</span>());
-                <span class='kw'>return</span> <span class='ident'>ugh_privacy</span>::<span class='ident'>dberror_new</span>(<span class='ident'>fields</span>);
+                <span class='kw'>return</span> <span class='ident'>DbError</span>::<span class='ident'>new</span>(<span class='ident'>fields</span>);
             }
             <span class='ident'>CopyInResponse</span> { .. } <span class='op'>=&gt;</span> {
                 <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>conn</span>.<span class='ident'>write_messages</span>(<span class='kw-2'>&amp;</span>[
@@ -4497,7 +4505,7 @@
             <span class='ident'>BindComplete</span> <span class='op'>=&gt;</span> {},
             <span class='ident'>ErrorResponse</span> { <span class='ident'>fields</span> } <span class='op'>=&gt;</span> {
                 <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>conn</span>.<span class='ident'>wait_for_ready</span>());
-                <span class='kw'>return</span> <span class='ident'>ugh_privacy</span>::<span class='ident'>dberror_new</span>(<span class='ident'>fields</span>);
+                <span class='kw'>return</span> <span class='ident'>DbError</span>::<span class='ident'>new</span>(<span class='ident'>fields</span>);
             }
             _ <span class='op'>=&gt;</span> {
                 <span class='ident'>conn</span>.<span class='ident'>desynchronized</span> <span class='op'>=</span> <span class='boolval'>true</span>;
@@ -4574,7 +4582,7 @@
             <span class='ident'>CommandComplete</span> { <span class='ident'>tag</span> } <span class='op'>=&gt;</span> <span class='ident'>util</span>::<span class='ident'>parse_update_count</span>(<span class='ident'>tag</span>),
             <span class='ident'>ErrorResponse</span> { <span class='ident'>fields</span> } <span class='op'>=&gt;</span> {
                 <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>conn</span>.<span class='ident'>wait_for_ready</span>());
-                <span class='kw'>return</span> <span class='ident'>ugh_privacy</span>::<span class='ident'>dberror_new</span>(<span class='ident'>fields</span>);
+                <span class='kw'>return</span> <span class='ident'>DbError</span>::<span class='ident'>new</span>(<span class='ident'>fields</span>);
             }
             _ <span class='op'>=&gt;</span> {
                 <span class='ident'>conn</span>.<span class='ident'>desynchronized</span> <span class='op'>=</span> <span class='boolval'>true</span>;
@@ -4682,6 +4690,16 @@
     <span class='kw'>fn</span> <span class='ident'>is_active</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>bool</span> {
         <span class='self'>self</span>.<span class='ident'>is_active</span>()
     }
+}
+
+<span class='kw'>trait</span> <span class='ident'>OtherNew</span> {
+    <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>name</span>: <span class='ident'>String</span>, <span class='ident'>oid</span>: <span class='ident'>Oid</span>, <span class='ident'>kind</span>: <span class='ident'>Kind</span>) <span class='op'>-&gt;</span> <span class='ident'>Other</span>;
+}
+
+<span class='kw'>trait</span> <span class='ident'>DbErrorNew</span> {
+    <span class='kw'>fn</span> <span class='ident'>new_raw</span>(<span class='ident'>fields</span>: <span class='ident'>Vec</span><span class='op'>&lt;</span>(<span class='ident'>u8</span>, <span class='ident'>String</span>)<span class='op'>&gt;</span>) <span class='op'>-&gt;</span> <span class='ident'>result</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>DbError</span>, ()<span class='op'>&gt;</span>;
+    <span class='kw'>fn</span> <span class='ident'>new_connect</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>(<span class='ident'>fields</span>: <span class='ident'>Vec</span><span class='op'>&lt;</span>(<span class='ident'>u8</span>, <span class='ident'>String</span>)<span class='op'>&gt;</span>) <span class='op'>-&gt;</span> <span class='ident'>result</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>T</span>, <span class='ident'>ConnectError</span><span class='op'>&gt;</span>;
+    <span class='kw'>fn</span> <span class='ident'>new</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>(<span class='ident'>fields</span>: <span class='ident'>Vec</span><span class='op'>&lt;</span>(<span class='ident'>u8</span>, <span class='ident'>String</span>)<span class='op'>&gt;</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>;
 }
 </pre>
 </section>

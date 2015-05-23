@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["DbError","A Postgres error or notice."],["Other","Information about an unknown type."]]});
