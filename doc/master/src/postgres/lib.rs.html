@@ -2370,6 +2370,11 @@
 <span id="2328">2328</span>
 <span id="2329">2329</span>
 <span id="2330">2330</span>
+<span id="2331">2331</span>
+<span id="2332">2332</span>
+<span id="2333">2333</span>
+<span id="2334">2334</span>
+<span id="2335">2335</span>
 </pre><pre class='rust '>
 <span class='doccomment'>//! Rust-Postgres is a pure-Rust frontend for the popular PostgreSQL database. It</span>
 <span class='doccomment'>//! exposes a high level interface in the vein of JDBC or Go&#39;s `database/sql`</span>
@@ -2775,6 +2780,11 @@
     <span class='prelude-val'>Ok</span>(())
 }
 
+<span class='kw'>fn</span> <span class='ident'>bad_response</span>() <span class='op'>-&gt;</span> <span class='ident'>std_io</span>::<span class='ident'>Error</span> {
+    <span class='ident'>std_io</span>::<span class='ident'>Error</span>::<span class='ident'>new</span>(<span class='ident'>std_io</span>::<span class='ident'>ErrorKind</span>::<span class='ident'>InvalidInput</span>,
+                       <span class='string'>&quot;the server returned an unexpected response&quot;</span>)
+}
+
 <span class='doccomment'>/// An enumeration of transaction isolation levels.</span>
 <span class='doccomment'>///</span>
 <span class='doccomment'>/// See the [Postgres documentation](http://www.postgresql.org/docs/9.4/static/transaction-iso.html)</span>
@@ -2824,7 +2834,7 @@
         } <span class='kw'>else</span> <span class='kw'>if</span> <span class='ident'>raw</span>.<span class='ident'>eq_ignore_ascii_case</span>(<span class='string'>&quot;SERIALIZABLE&quot;</span>) {
             <span class='prelude-val'>Ok</span>(<span class='ident'>IsolationLevel</span>::<span class='ident'>Serializable</span>)
         } <span class='kw'>else</span> {
-            <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>BadResponse</span>)
+            <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>IoError</span>(<span class='ident'>bad_response</span>()))
         }
     }
 }
@@ -2921,7 +2931,7 @@
                 }
                 <span class='ident'>ReadyForQuery</span> { .. } <span class='op'>=&gt;</span> <span class='kw'>break</span>,
                 <span class='ident'>ErrorResponse</span> { <span class='ident'>fields</span> } <span class='op'>=&gt;</span> <span class='kw'>return</span> <span class='ident'>DbError</span>::<span class='ident'>new_connect</span>(<span class='ident'>fields</span>),
-                _ <span class='op'>=&gt;</span> <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>ConnectError</span>::<span class='ident'>BadResponse</span>),
+                _ <span class='op'>=&gt;</span> <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>ConnectError</span>::<span class='ident'>IoError</span>(<span class='ident'>bad_response</span>())),
             }
         }
 
@@ -3032,13 +3042,13 @@
             <span class='op'>|</span> <span class='ident'>AuthenticationGSS</span>
             <span class='op'>|</span> <span class='ident'>AuthenticationSSPI</span> <span class='op'>=&gt;</span> <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>ConnectError</span>::<span class='ident'>UnsupportedAuthentication</span>),
             <span class='ident'>ErrorResponse</span> { <span class='ident'>fields</span> } <span class='op'>=&gt;</span> <span class='kw'>return</span> <span class='ident'>DbError</span>::<span class='ident'>new_connect</span>(<span class='ident'>fields</span>),
-            _ <span class='op'>=&gt;</span> <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>ConnectError</span>::<span class='ident'>BadResponse</span>)
+            _ <span class='op'>=&gt;</span> <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>ConnectError</span>::<span class='ident'>IoError</span>(<span class='ident'>bad_response</span>()))
         }
 
         <span class='kw'>match</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='ident'>read_message</span>()) {
             <span class='ident'>AuthenticationOk</span> <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>(()),
             <span class='ident'>ErrorResponse</span> { <span class='ident'>fields</span> } <span class='op'>=&gt;</span> <span class='kw'>return</span> <span class='ident'>DbError</span>::<span class='ident'>new_connect</span>(<span class='ident'>fields</span>),
-            _ <span class='op'>=&gt;</span> <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>ConnectError</span>::<span class='ident'>BadResponse</span>)
+            _ <span class='op'>=&gt;</span> <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>ConnectError</span>::<span class='ident'>IoError</span>(<span class='ident'>bad_response</span>()))
         }
     }
 
@@ -3842,7 +3852,7 @@
             }
             _ <span class='op'>=&gt;</span> {
                 <span class='ident'>conn</span>.<span class='ident'>desynchronized</span> <span class='op'>=</span> <span class='boolval'>true</span>;
-                <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>BadResponse</span>)
+                <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>IoError</span>(<span class='ident'>bad_response</span>()))
             }
         }
     }
@@ -3918,7 +3928,7 @@
                 }
                 _ <span class='op'>=&gt;</span> {
                     <span class='ident'>conn</span>.<span class='ident'>desynchronized</span> <span class='op'>=</span> <span class='boolval'>true</span>;
-                    <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>BadResponse</span>);
+                    <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>IoError</span>(<span class='ident'>bad_response</span>()));
                 }
             }
         }
@@ -4066,7 +4076,7 @@
             }
             _ <span class='op'>=&gt;</span> {
                 <span class='ident'>conn</span>.<span class='ident'>desynchronized</span> <span class='op'>=</span> <span class='boolval'>true</span>;
-                <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>BadResponse</span>);
+                <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>IoError</span>(<span class='ident'>bad_response</span>()));
             }
         }
     }
@@ -4509,7 +4519,7 @@
             }
             _ <span class='op'>=&gt;</span> {
                 <span class='ident'>conn</span>.<span class='ident'>desynchronized</span> <span class='op'>=</span> <span class='boolval'>true</span>;
-                <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>BadResponse</span>);
+                <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>IoError</span>(<span class='ident'>bad_response</span>()));
             }
         }
 
@@ -4517,7 +4527,7 @@
             <span class='ident'>CopyInResponse</span> { .. } <span class='op'>=&gt;</span> {}
             _ <span class='op'>=&gt;</span> {
                 <span class='ident'>conn</span>.<span class='ident'>desynchronized</span> <span class='op'>=</span> <span class='boolval'>true</span>;
-                <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>BadResponse</span>);
+                <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>IoError</span>(<span class='ident'>bad_response</span>()));
             }
         }
 
@@ -4586,7 +4596,7 @@
             }
             _ <span class='op'>=&gt;</span> {
                 <span class='ident'>conn</span>.<span class='ident'>desynchronized</span> <span class='op'>=</span> <span class='boolval'>true</span>;
-                <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>BadResponse</span>);
+                <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>IoError</span>(<span class='ident'>bad_response</span>()));
             }
         };
 

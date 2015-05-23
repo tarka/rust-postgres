@@ -76,8 +76,11 @@
 <span id="34">34</span>
 <span id="35">35</span>
 <span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>serialize</span>::<span class='ident'>json</span>;
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>error</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='ident'>prelude</span>::<span class='op'>*</span>;
 <span class='kw'>use</span> <span class='ident'>byteorder</span>::{<span class='ident'>ReadBytesExt</span>, <span class='ident'>WriteBytesExt</span>};
 
@@ -89,10 +92,11 @@
         <span class='kw'>if</span> <span class='kw'>let</span> <span class='ident'>Type</span>::<span class='ident'>Jsonb</span> <span class='op'>=</span> <span class='op'>*</span><span class='ident'>ty</span> {
             <span class='comment'>// We only support version 1 of the jsonb binary format</span>
             <span class='kw'>if</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>raw</span>.<span class='ident'>read_u8</span>()) <span class='op'>!=</span> <span class='number'>1</span> {
-                <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>BadResponse</span>);
+                <span class='kw'>let</span> <span class='ident'>err</span>: <span class='ident'>Box</span><span class='op'>&lt;</span><span class='ident'>error</span>::<span class='ident'>Error</span><span class='op'>+</span><span class='ident'>Sync</span><span class='op'>+</span><span class='ident'>Send</span><span class='op'>&gt;</span> <span class='op'>=</span> <span class='string'>&quot;unsupported JSONB encoding version&quot;</span>.<span class='ident'>into</span>();
+                <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>Conversion</span>(<span class='ident'>err</span>));
             }
         }
-        <span class='ident'>json</span>::<span class='ident'>Json</span>::<span class='ident'>from_reader</span>(<span class='ident'>raw</span>).<span class='ident'>map_err</span>(<span class='op'>|</span>_<span class='op'>|</span> <span class='ident'>Error</span>::<span class='ident'>BadResponse</span>)
+        <span class='ident'>json</span>::<span class='ident'>Json</span>::<span class='ident'>from_reader</span>(<span class='ident'>raw</span>).<span class='ident'>map_err</span>(<span class='op'>|</span><span class='ident'>err</span><span class='op'>|</span> <span class='ident'>Error</span>::<span class='ident'>Conversion</span>(<span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='ident'>err</span>)))
     }
 
     <span class='macro'>accepts</span><span class='macro'>!</span>(<span class='ident'>Type</span>::<span class='ident'>Json</span>, <span class='ident'>Type</span>::<span class='ident'>Jsonb</span>);

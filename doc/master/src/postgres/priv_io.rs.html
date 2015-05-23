@@ -339,7 +339,7 @@
     <span class='kw'>let</span> <span class='ident'>host</span> <span class='op'>=</span> <span class='kw'>match</span> <span class='ident'>params</span>.<span class='ident'>target</span> {
         <span class='ident'>ConnectTarget</span>::<span class='ident'>Tcp</span>(<span class='kw-2'>ref</span> <span class='ident'>host</span>) <span class='op'>=&gt;</span> <span class='ident'>host</span>,
         <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>feature</span> <span class='op'>=</span> <span class='string'>&quot;unix_socket&quot;</span>)]</span>
-        <span class='ident'>ConnectTarget</span>::<span class='ident'>Unix</span>(_) <span class='op'>=&gt;</span> <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>ConnectError</span>::<span class='ident'>BadResponse</span>)
+        <span class='ident'>ConnectTarget</span>::<span class='ident'>Unix</span>(_) <span class='op'>=&gt;</span> <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>ConnectError</span>::<span class='ident'>IoError</span>(::<span class='ident'>bad_response</span>()))
     };
 
     <span class='kw'>match</span> <span class='ident'>negotiator</span>.<span class='ident'>negotiate_ssl</span>(<span class='ident'>host</span>, <span class='ident'>socket</span>) {
