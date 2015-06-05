@@ -2,7 +2,7 @@ FROM debian:jessie
 
 
 RUN apt-get update && \
-    apt-get install -y netcat-openbsd curl binutils gcc && \
+    apt-get install -y netcat-openbsd curl binutils gcc  && \
     apt-get clean
 COPY docker/waitport /usr/local/bin/
 
@@ -30,5 +30,5 @@ WORKDIR /code
 
 RUN cargo update
 
-CMD ping postgres
-
+CMD waitport postgres 5432 && \
+    cargo test

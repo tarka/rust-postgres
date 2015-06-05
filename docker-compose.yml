@@ -2,8 +2,8 @@ rustpsql:
   build: .
 
   links:
-    - postgres
+    - postgres94:postgres
 
 
-postgres:
-  image: postgres:9.4
+postgres94:
+  build: docker/postgres94

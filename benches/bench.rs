@@ -7,7 +7,7 @@ use postgres::{Connection, SslMode};
 
 #[bench]
 fn bench_naiive_execute(b: &mut test::Bencher) {
-    let conn = Connection::connect("postgres://postgres@localhost", &SslMode::None).unwrap();
+    let conn = Connection::connect("postgres://postgres@postgres", &SslMode::None).unwrap();
     conn.execute("CREATE TEMPORARY TABLE foo (id INT)", &[]).unwrap();
 
     b.iter(|| {
@@ -20,7 +20,7 @@ fn bench_naiive_execute(b: &mut test::Bencher) {
 
 #[bench]
 fn bench_execute(b: &mut test::Bencher) {
-    let conn = Connection::connect("postgres://postgres@localhost", &SslMode::None).unwrap();
+    let conn = Connection::connect("postgres://postgres@postgres", &SslMode::None).unwrap();
     conn.execute("CREATE TEMPORARY TABLE foo (id INT)", &[]).unwrap();
 
     b.iter(|| {
