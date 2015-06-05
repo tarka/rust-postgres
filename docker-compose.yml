@@ -1,0 +1,9 @@
+rustpsql:
+  build: .
+
+  links:
+    - postgres
+
+
+postgres:
+  image: postgres:9.4
